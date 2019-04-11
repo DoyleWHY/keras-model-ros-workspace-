@@ -1,0 +1,7 @@
+ tensorboard --logdir="./graphs" --port 6006
+
+.data: Contains variable values
+
+.meta: Contains graph structure
+
+.index: Identifies checkpoints (we will explain it in section 2.1)

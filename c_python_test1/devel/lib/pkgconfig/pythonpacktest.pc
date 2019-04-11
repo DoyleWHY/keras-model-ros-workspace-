@@ -1,0 +1,8 @@
+prefix=/home/why/doyle_why/language/python_work/c_python_test1/devel
+
+Name: pythonpacktest
+Description: Description of pythonpacktest
+Version: 0.1.0
+Cflags: 
+Libs: -L/home/why/doyle_why/language/python_work/c_python_test1/devel/lib 
+Requires: 
