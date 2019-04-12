@@ -50,7 +50,6 @@ def CalQ1 (px,py):
         return -math.atan2(py,px)
 
 def train_data(x,y,z):
-
     single_data_1 = np.array([[x, y, z]])
     single_data = x_scaler.transform(single_data_1)
     single_prediction = loaded_model.predict(single_data)
@@ -69,6 +68,63 @@ def train_angle(x,y,z):
     print(CalQ1(x,y),single_real_prediction[0,0],single_real_prediction[0,1])
     print("*********************************")
     return (CalQ1(x,y),single_real_prediction[0,0],single_real_prediction[0,1])
+
+def jacobian_angle(x,y,z,Q1,Q2,Q3):
+    #for i in range(1,10) :
+    QCurrent = np.matrix([[Q1],
+                        [Q2],
+                        [Q3]])
+    t1 = QCurrent[0,0]
+    t2 = QCurrent[1,0]
+    t3 = QCurrent[2,0]
+    #print(t1,t2,t3)
+
+    xCurrent = math.cos(t1)*math.sin(t2)+(math.cos(t1)*math.cos(t2)*math.sin(t3))/2+(math.cos(t1)*math.cos(t3)*math.sin(t2))/2
+    yCurrent = math.sin(t1)*math.sin(t2)+(math.cos(t2)*math.sin(t1)*math.sin(t3))/2+(math.cos(t3)*math.sin(t1)*math.sin(t2))/2
+    zCurrent = math.cos(t2)+(math.cos(t2)*math.cos(t3))/2-(math.sin(t2)*math.sin(t3))/2+1
+    #print(xCurrent,yCurrent,zCurrent)
+
+    deltX = x - xCurrent
+    deltY = y - yCurrent
+    deltZ = z - zCurrent
+    #print(deltX,deltY,deltZ)
+
+    deltPosition = np.matrix([[deltX],
+                             [deltY],
+                             [deltZ]])
+
+    jaco = np.matrix([[-math.sin(t1)*math.sin(t2)-(math.cos(t2)*math.sin(t1)*math.sin(t3))/2-(math.cos(t3)*math.sin(t1)*math.sin(t2))/2, math.cos(t1)*math.cos(t2)-(math.cos(t1)*math.sin(t2)*math.sin(t3))/2+(math.cos(t1)*math.cos(t2)*math.cos(t3))/2, (math.cos(t1)*math.cos(t2)*math.cos(t3))/2-(math.cos(t1)*math.sin(t2)*math.sin(t3))/2],
+                     [math.cos(t1)*math.sin(t2)+(math.cos(t1)*math.cos(t2)*math.sin(t3))/2+(math.cos(t1)*math.cos(t3)*math.sin(t2))/2, math.cos(t2)*math.sin(t1)+(math.cos(t2)*math.cos(t3)*math.sin(t1))/2-(math.sin(t1)*math.sin(t2)*math.sin(t3))/2, (math.cos(t2)*math.cos(t3)*math.sin(t1))/2-(math.sin(t1)*math.sin(t2)*math.sin(t3))/2],
+                     [0, -math.sin(t2)-(math.cos(t2)*math.sin(t3))/2-(math.cos(t3)*math.sin(t2))/2, -(math.cos(t2)*math.sin(t3))/2-(math.cos(t3)*math.sin(t2))/2]])
+    #print(jaco[0,0],jaco[0,1],jaco[0,2])
+    #print(jaco[1,0],jaco[1,1],jaco[1,2])
+    #print(jaco[2,0],jaco[2,1],jaco[2,2])
+
+    #print(np.linalg.pinv(jaco)[0,0],np.linalg.pinv(jaco)[0,1],np.linalg.pinv(jaco)[0,2])
+    #print(np.linalg.pinv(jaco)[1,0],np.linalg.pinv(jaco)[1,1],np.linalg.pinv(jaco)[1,2])
+    #print(np.linalg.pinv(jaco)[2,0],np.linalg.pinv(jaco)[2,1],np.linalg.pinv(jaco)[2,2])
+
+    deltQ = np.linalg.pinv(jaco)*deltPosition
+    #print(deltQ[0,0],deltQ[1,0],deltQ[2,0])
+
+    QCurrent = QCurrent + deltQ
+
+    while QCurrent[0,0] > 2*math.pi :
+        QCurrent[0,0] = QCurrent[0,0] - 2*math.pi;
+    while QCurrent[0,0] < 0 :
+        QCurrent[0,0] = QCurrent[0,0] + 2*math.pi;
+
+    while QCurrent[1,0] > 2*math.pi :
+        QCurrent[1,0] = QCurrent[1,0] - 2*math.pi;
+    while QCurrent[1,0] < 0 :
+        QCurrent[1,0] = QCurrent[1,0] + 2*math.pi;
+
+    while QCurrent[2,0] > 2*math.pi :
+        QCurrent[2,0] = QCurrent[2,0] - 2*math.pi;
+    while QCurrent[2,0] < 0 :
+        QCurrent[2,0] = QCurrent[2,0] + 2*math.pi;
+
+    return (QCurrent[0,0], QCurrent[1,0], QCurrent[2,0])
 
 # load json and create model
 json_file = open('/home/why/doyle_why/language/python_work/c_python_test1/src/pythonpacktest/src/model_doyle_type3.json', 'r')
